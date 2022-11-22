@@ -41,6 +41,8 @@ type ItemDefinitionGroup struct {
 type ClCompile struct {
 	XMLName                      xml.Name `xml:"ClCompile"`
 	AdditionalIncludeDirectories string   `xml:"AdditionalIncludeDirectories"`
+	AdditionalOptions            string   `xml:"AdditionalOptions"`
+	LanguageStandard             string   `xml:"LanguageStandard"`
 	PreprocessorDefinitions      string   `xml:"PreprocessorDefinitions"`
 }
 
@@ -55,6 +57,9 @@ type CompileCommand struct {
 	File string `json:"file"`
 }
 
+var badOtp = []string{
+	"%(AdditionalOptions)",
+}
 var badInclude = []string{
 	";%(AdditionalIncludeDirectories)",
 	"%(AdditionalIncludeDirectories);",
@@ -88,7 +93,7 @@ func NewProject(path string) (Project, error) {
 }
 
 //return include, definition,error
-func (pro *Project) FindConfig(conf string) (string, string, error) {
+func (pro *Project) FindConfig(conf string) (string, string, string, error) {
 	var cfgList []ProjectConfiguration
 	for _, v := range pro.ItemGroup {
 		if len(v.ProjectConfigurationList) > 0 {
@@ -98,7 +103,7 @@ func (pro *Project) FindConfig(conf string) (string, string, error) {
 	}
 	fmt.Fprintln(os.Stderr, cfgList)
 	if len(cfgList) == 0 {
-		return "", "", errors.New(pro.ProjectPath + ":not found " + conf)
+		return "", "", "", errors.New(pro.ProjectPath + ":not found " + conf)
 	}
 	found := false
 	for _, v := range cfgList {
@@ -108,7 +113,7 @@ func (pro *Project) FindConfig(conf string) (string, string, error) {
 		}
 	}
 	if !found {
-		return "", "", errors.New(pro.ProjectPath + ":not found " + conf)
+		return "", "", "", errors.New(pro.ProjectPath + ":not found " + conf)
 	}
 	for _, v := range pro.ItemDefinitionGroup {
 		if strings.Contains(v.Condition, conf) {
@@ -130,7 +135,6 @@ func (pro *Project) FindConfig(conf string) (string, string, error) {
 			}
 
 			include := cl.AdditionalIncludeDirectories
-			def := cl.PreprocessorDefinitions
 			for k, v := range willReplaceEnv {
 				if strings.Contains(include, k) {
 					include = strings.Replace(include, k, v, -1)
@@ -146,10 +150,16 @@ func (pro *Project) FindConfig(conf string) (string, string, error) {
 				//}
 			}
 
-			return include, def, nil
+			def := cl.PreprocessorDefinitions
+			opt := cl.AdditionalOptions
+            stdcpp := cl.LanguageStandard
+            stdcpp = strings.Replace(stdcpp, "stdcpp", " -std:c++", -1)
+            opt += stdcpp
+
+			return opt, include, def, nil
 		}
 	}
-	return "", "", errors.New("not found " + conf)
+	return "", "", "", errors.New("not found " + conf)
 }
 
 func (pro *Project) FindSourceFiles() []string {
@@ -160,6 +170,13 @@ func (pro *Project) FindSourceFiles() []string {
 		}
 	}
 	return fileList
+}
+
+func RemoveBadOption(option string) string {
+	for _, bad := range badOtp {
+		option = strings.Replace(option, bad, "", -1)
+	}
+	return option
 }
 
 func RemoveBadInclude(include string) string {

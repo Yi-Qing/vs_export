@@ -75,7 +75,7 @@ func (sln *Sln) CompileCommandsJson(conf string) ([]CompileCommand, error) {
 			item.Dir = pro.ProjectDir
 			item.File = f
 
-			inc, def, err := pro.FindConfig(conf)
+			opt, inc, def, err := pro.FindConfig(conf)
 			if err != nil {
 				return cmdList, err
 			}
@@ -93,7 +93,9 @@ func (sln *Sln) CompileCommandsJson(conf string) ([]CompileCommand, error) {
 			inc = RemoveBadInclude(inc)
 			inc = preappend(inc, "-I")
 
-			cmd := "clang-cl.exe " + def + " " + inc + " -c " + f
+            opt = RemoveBadOption(opt)
+
+			cmd := "clang-cl.exe " + def + " " + inc + opt + " -c " + f
 			item.Cmd = cmd
 
 			cmdList = append(cmdList, item)

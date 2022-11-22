@@ -5,8 +5,8 @@ read visual studio 15/17/19/22 sln file,export clang compile_commands.json
 ```cmd
 usage:vs_export options
            -s   path                        sln filename
-           -c   configuration               project configuration,eg Debug|Win32.
-                                            default Debug|Win32
+           -c   configuration               project configuration,eg Debug|x64.
+                                            default Debug|x64
 ```
 
 ## example

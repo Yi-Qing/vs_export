@@ -11,8 +11,8 @@ import (
 
 func main() {
 	path := flag.String("s", "", "sln file path")
-	configuration := flag.String("c", "Debug|Win32",
-		"Configuration, [configuration|platform], default Debug|Win32")
+	configuration := flag.String("c", "Debug|x64",
+		"Configuration, [configuration|platform], default Debug|x64")
 	flag.Parse()
 
 	if *path == "" {
@@ -43,8 +43,8 @@ func main() {
 func usage() {
 	echo := `usage:sln_export_compile_commands options
 			 -s   path                        sln filename
-           -c   configuration               project configuration,eg Debug|Win32.
-                                            default Debug|Win32
+           -c   configuration               project configuration,eg Debug|x64.
+                                            default Debug|x64
 	`
 	fmt.Println(echo)
 }
